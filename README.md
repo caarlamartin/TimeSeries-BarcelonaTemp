@@ -21,5 +21,3 @@ Analizar la evolución de las temperaturas medias mensuales de Barcelona entre 1
 - El modelo SARIMA permitió realizar predicciones con intervalos de confianza.  
 - Se observó la evolución de la temperatura a corto plazo durante el periodo estudiado.
 
-## Enlace al proyecto
-[Ver proyecto completo en PDF](TimeSeries-BarcelonaTemp/SeriesTemporales_Barcelona.pdf)
