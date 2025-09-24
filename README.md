@@ -22,4 +22,4 @@ Analizar la evolución de las temperaturas medias mensuales de Barcelona entre 1
 - Se observó la evolución de la temperatura a corto plazo durante el periodo estudiado.
 
 ## Enlace al proyecto
-[Ver proyecto completo](https://github.com/caarlamartin/TimeSeries-BarcelonaTemp)
+[Ver proyecto completo en PDF](SeriesTemporales_Barcelona.pdf)
