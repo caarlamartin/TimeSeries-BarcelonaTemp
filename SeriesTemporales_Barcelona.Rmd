@@ -1,0 +1,358 @@
+---
+title: ""
+author: ""
+date: ""
+output: 
+  pdf_document:
+    fig_caption: yes
+    latex_engine: xelatex
+    number_sections: yes
+    toc: false
+    toc_depth: 4
+    df_print: kable
+  html_document:
+    toc: false
+    toc_depth: '4'
+    df_print: paged
+    latex_engine: xelatex
+    number_sections: yes
+fontsize: 11pt
+geometry: margin=2.5cm
+linestretch: 1.2
+classoption: oneside
+colorlinks:
+  linkcolor: blue
+  citecolor: grey
+  urlcolor: blue
+  toccolor: grey
+subtitle: Series Temporales. Grado en Estadística. Ugr
+header-includes:
+- \usepackage{threeparttable}
+- \usepackage{booktabs}
+- \usepackage{longtable}
+- \usepackage{colortbl}
+- \usepackage{graphicx}
+- \usepackage{multirow}
+- \usepackage{array}
+- \usepackage{multirow} % para las tablas
+- "\\setlength{\\headheight}{13.59999pt}"
+- "\\usepackage[spanish,es-tabla]{babel}"
+- "\\usepackage{fancyhdr}"
+- "\\pagestyle{fancy}"
+- "\\fancyhf{}"
+- "\\rhead{Estudio de una serie temporal}"
+- "\\lhead{Carla Martín Pérez}"
+- "\\rfoot{\\thepage}"
+- "\\setlength{\\headheight}{13.59999pt}"
+- "\\addtolength{\\topmargin}{-1.59999pt}"
+editor_options:
+  markdown:
+    wrap: 72
+---
+
+\begin{titlepage}
+\centering
+\vspace*{1cm}
+
+{\Huge \textbf{Temperaturas medias mensuales de Barcelona (1995-2002)} \par}
+
+\vspace{1.5cm}
+{\LARGE Carla Martín Pérez\par}
+\vspace{1cm}
+
+{\Large Series Temporales. Grado en Estadística. UGR\par}
+
+\vspace{2cm}
+\includegraphics[width=0.5\textwidth]{C:/Users/carla/OneDrive/Escritorio/ESTADÍSTICA/4º Estadística/Series Temporales/logoUGR.PNG}
+
+\vfill
+{\large Fecha: 13 de enero de 2025 \par}
+
+\end{titlepage}
+
+\newpage
+
+\tableofcontents
+\newpage
+
+```{r setup, echo=FALSE}
+knitr::opts_chunk$set(echo=TRUE,  message=T, warning=F, eval=TRUE, comment="", results="markup")
+# comment evita el que aparezca el símbolo ## en el resultado
+```
+
+# Introducción
+
+Las series temporales se encuentran presentes en nuestra vida cotidiana en diversas formas y campos. Podemos ver ejemplos como en el ámbito de la salud, donde estas son fundamentales para el seguimiento de un paciente, o en meteorología, donde las temperaturas recogidas a lo largo del tiempo también forman parte de estas series temporales.
+
+Por tanto, una definición de series temporales sería que son una sucesión de observaciones de una variables aleatoria en distintos instantes de tiempo.
+
+En este trabajo se va a tratar de analizar detalladamente una serie temporal, con el objetivo de estudiar su comportamiento a lo largo del tiempo, identificando patrones, tendencias y posibles estacionalidades.
+
+## Información previa al estudio
+
+Para hacer el estudio sobre una serie temporal se ha elegido una base de datos de [datos.gob.es](https://datos.gob.es/es/).
+
+Esta base de datos, *datos_aire_Bc*, contiene información sobre las temperaturas medias mensuales del aire de la ciudad de Barcelona desde enero de 1780 hasta diciembre de 2023, proporcionada en grados centígrados (ºC). Esta base de datos tiene 4 variables:
+
+-   **Año**. Desde 1780 a 2023.
+-   **Mes**. Del 1 al 12, siendo el 1 enero y el 12 diciembre.
+-   **Nombre del mes**. Enero, febrero, ..., diciembre.
+-   **Temperatura**. Temperaturas en grados centrígrados (ºC)
+
+Para realizar el estudio, más adelante, selecciono los datos a los años desde 1995 hasta 2002, para analizar la evolución de las temperaturas medias a lo largo de estos años.
+
+\newpage
+
+# Estudio de la serie temporal
+
+Para empezar, voy a mostrar parte de los datos sobre los que voy a trabajar.
+
+```{r}
+datos<-read.csv(file="datos_aire_Bc.csv", header=T, dec=".")
+
+# Vemos las 6 primeras filas del archivo
+head(datos)
+```
+
+Al ser un número muy elevado de observaciones, voy a estudiar la serie temporal de la temperatura media de los meses desde el año 1995 hasta 2002.
+
+Selecciono solo los datos de los meses pertenecientes a los años desde 1995 hasta 2002:
+
+```{r}
+datos <- datos[datos$Any >= "1995" & datos$Any <= "2002", ]
+head(datos)
+```
+
+Se puede ver la estructura de las datos:
+
+```{r}
+# Ver estructura de los datos
+str(datos)
+```
+
+Como ya se mencionó anteriormente, existen 4 columnas que se tratan de las variables, *Any*, *Mes*, *Desc_Mes*, *Temperatura*, y 96 filas, que se refiere al número de temperaturas medias de los meses de cada uno de los años (1995-2002) recogidas en el archivo.
+
+También podemos ver un resumen de estos datos:
+
+```{r}
+summary(datos)
+```
+
+Con este resumen de los datos se puede ver la temperatura mensual mínima alcanzada, siendo esta de 6.8ºC, y la máxima, 25ºC, desde 1995 hasta 2002. El resto de variables no las observaremos ya que trabajaremos sobre las temperaturas.
+
+Y para empezar a trabajar sobre ellas convertiremos la variable *Temperatura* de nuestros datos en una serie temporal.
+
+```{r}
+temp<-ts(datos$Temperatura, start=1995, frequency = 12)
+
+# Vemos que clase es la variable que hemos creado
+class(temp)
+```
+
+Al devolvernos **"ts"** con la función *class*, comprobamos que se ha creado un objeto (variable) de clase "ts", **Time-Series**, correctamente.
+
+Podemos ver esta serie temporal gráficamente:
+
+```{r, scroll=TRUE}
+plot(temp, ylab = "Temperatura", xlab = "Años", main = "Temperatura de Barcelona (1995-2002)")
+```
+
+A simple vista, podemos ver diferentes temperaturas a lo largo de las años, unas más alta que otras, viendo que en los meses de verano las temperaturas crecen, y en los meses de invierno las temperaturas disminuyen, pero no parece haber una tendencia lineal clara hacia un aumento o descenso de las temperaturas. Tampoco se podría asegurar la existencia de un patrón estacional a simple vista.
+
+Para poder analizar mejor la serie mostraré las funciones de autocorrelación, FAC, y autocorrelación parcial, FACP, y para dibujarlas elegimos hacerlo para un retardo máximo de 36, ya que se sugiere tomar un valor para un retardo máximo múltiplo de del periodo estacional, por lo que, en este caso, $\frac{T}{3} = 32$, el retardo máximo estará entre 36 y 24 que son los más cercano a este valor, y elegiremos 36.
+
+```{r}
+acf(temp, lag.max = 36, ci.type = "ma")
+pacf(temp, lag.max= 36)
+```
+
+En la función de autocorrelación de la serie, el primer valor en el lag 0 es siempre 1, porque está correlacionado consigo mismo, pero a partir del lag 1, aunque algunas sobre pasan las bandas del intervalo de confianza, se puede observar un leve decrecimiento. Y en la función de autocorrelación parcial se puede ver que los lags significativos son los encontrados al principio y alguno aislado más adelante.
+
+Lo siguiente es el test de Dickey-Fuller, este test es imortante para comprobar la presencia de raíces unitarias, es decir, si su comportamiento está dominado por una tendencia no estacionaria, por lo que la hipótesis nula, $H_{0}$, consiste en que hay una raíz unitaria.
+
+```{r}
+library(fUnitRoots)
+adfTest(temp, lags = 1)
+```
+
+El p-valor obtenido es 0.08055 con lo que para $\alpha$ = 0,05, no podemos rechazar la hipótesis nula consistente en que hay una raíz unitaria, es decir, no se puede rechazar que su comportamiento esté dominada por una tendencia no estacionaria.
+
+Tras este resultado, lo siguiente que se debe hacer es diferenciar la serie.
+
+```{r}
+dtemp<-diff(temp)
+```
+
+Si dibujamos la serie diferenciada, tenemos:
+
+```{r, scroll=TRUE}
+plot(dtemp, ylab = "Temperaturas", xlab = "Años", main = "Temperatura de Barcelona (1995-2002). Dif")
+```
+
+La gráfica de la serie diferenciada nos permite decir que la serie podría ser estacionaria, ya que mantiene una variabilidad constante y se va moviendo alrededor de un nivel medio, 0. Por lo que después de estas conclusiones, para poder confirmarlo, vuelvo a dibujar las funciones de autocorrelación y autocorrelación parcial.
+
+```{r}
+acf(dtemp, lag.max = 36, ci.type = "ma")
+pacf(dtemp, lag.max = 36)
+```
+
+En la función de autocorrelación podemos ver un decrecimiento, aunque con algunos retardos significativos, entre ellos, el primer y segundo retardo estacional (correspondientes al duodécimo y vigésimo cuarto retardo, por ser datos mensuales). En la función de autocorrelación parcial también notamos un decrecimiento con retardos significativos, en este caso, también es significativo el primer retardo estacional, por lo que en ambas funciones nos encontramos esta característica. Este hecho, nos hace pensar que deberiamos realizar una diferenciación estacional, es decir, en lugar de diferenciar la serie mediante $(1 - B)$, se diferenciaría primero usando una diferenciación estacional, en este caso $(1-B^{12})$. 
+
+```{r}
+dstemp<-diff(temp, lag=12, differences = 1)
+```
+
+Podemos ver la gráfica de esta serie diferenciada estacionalmente:
+
+```{r}
+plot(dstemp, ylab = "Temperaturas", main="Temp. Barcelona 1995-2002 (diferenciada 1-B^12)",xlab = "Años")
+```
+
+Esta serie parece ser estacionaria en cuanto varianza y media, pero para poder confirmarlo realizo el test de Dickey-Fuller.
+
+```{r}
+adfTest(dstemp, lags = 1)
+```
+
+Como el p-valor obtenido es 0.01 con lo que para $\alpha$ = 0,05, podemos rechazar la hipótesis nula consistente en que hay una raíz unitaria, es decir, se puede rechazar que su comportamiento esté dominada por una tendencia no estacionaria. 
+
+Las gráficas de FAC y FACP de esta serie son las siguientes:
+
+```{r}
+acf(dstemp,lag.max=36,ci.type="ma")
+pacf(dstemp,lag.max=36)
+```
+
+
+Fijándonos en los gráficos anteriores podemos obtener que modelo se debe ajustar. Voy a ajustar un modelo $SARIMA(0, 0, 0)(0, 1, 1)_{12}$, y otro $SARIMA(0, 0, 0)(1, 1, 0)_{12}$, pero antes de empezar a ajustar estos modelos mencionaré de que se compone un modelo **SARIMA**. 
+
+Un modelo $SARIMA(p, d, q)(P, D, Q)_{s}$, *Seasonal AutoRegressive Integrated Moving Average*, es una extensión del modelo ARIMA que incorpora componentes estacionales. Este modelo está compuesto por dos conjuntos de parámetros, los no estacionales, (p, d, q), donde:
+
+- *p*: orden de la parte autorregresiva (AR). En nuestro caso, p = 0, ya que no hay evidencia de un término autorregresivo no estacional, es decir, el primer retardo en la FACP no es significativo, siendo los retardos que le continúan no significativos.
+- *d*: grado de diferenciación. Será d = 0, porque no se realiza una diferenciación (1 - B) en nuestros datos.
+- *q*: orden de la parte de medias móviles (MA). q = 0, el modelo no utiliza la relación entre los errores pasados para predecir los valores futuros.
+
+Y los estacionales , $(P, D, Q)_{s}$, donde:
+
+- *P*: orden autoregresivo estacional. Es P = 1, el modelo incluye una dependencia de los valores de la serie temporal registrados en el mismo punto de tiempo en ciclos estacionales anteriores. En la PACF se encuentra que el primer retardo estacional es significativo.
+- *D*: grado de diferenciación estacional. D = 1 porque se ha diferenciado estacionalmente la serie.
+- *Q*: orden de las medias móviles estacional. Q = 1, el modelo considera la influencia de los errores de predicción en ciclos estacionales anteriores. En la ACF se muestra un pico significativo en el primer retardo estacional.
+- *s*: periodo de estacionalidad (número de observaciones por ciclo estacional). En mi caso, s = 12, ya que los datos están recogidos mensualmente.
+
+Se ajustarán los modelos mencionados:
+
+**SARIMA(0, 0, 0)(0, 1, 1)_12**
+
+```{r}
+ms1 <- arima(temp, order = c(0, 0, 0), seasonal = list(order = c(0, 1, 1), period = 12), method = "ML")
+ms1
+```
+
+Para saber si los coeficientes son significativos en este primer modelo, vemos si en el IC al 95%, $Coeficiente \pm 1.96 \times s.e.$, no se encuentra el 0:
+
+- Para **sma1**:
+
+IC al 95%: $-0.9998 \pm 1.96 \times 0.2526 = [-1.4949, -0.5047]$
+
+Por tanto, como $0 \notin [-1.4949, -0.5047]$, el coeficiente *sma1* es significativamente distinto de 0.
+
+
+**SARIMA(0, 0, 0)(1, 1, 0)_12**
+
+```{r}
+ms2 <- arima(temp, order = c(0, 0, 0), seasonal = list(order = c(1, 1, 0), period = 12), method="ML")
+ms2
+```
+
+Para saber si los coeficientes son significativos en este segundo modelo:
+
+- Para **sar1**:
+
+IC al 95%: $-0.6369 \pm 1.96 \times 0.0866 = [-0.8066, -0.4672]$
+
+Por tanto, como $0 \notin [-0.8066, -0.4672]$, el coeficiente *sar1* es significativamente distinto de 0.
+
+
+En ambas salidas hemos obtenido la métrica **AIC**, Criterio de Información de Akaike, por su siglas en inglés, de cada modelo. Esta métrica nos devuelve qué tan bien se ajusta un modelo a los datos. Un menor AIC indica un mejor modelo, ya que se ofrece un mejor balance entre ajuste y simplicidad. En mi caso, en el primer modelo (**ms1**) tenemos, **AIC = 291.81**, frente al valor de este en el segundo modelo (**ms2**), **AIC = 297.07**. Por lo que el primer modelo será mejor que el segundo.
+
+
+```{r}
+acf(residuals(ms1), lag.max = 36)
+pacf(residuals(ms1), lag.max = 36)
+```
+
+Los valores de la función de autocorrelación y autocorrelación parcial no son singnificativamente distintos de cero, como concluimos anteriormente cuando mencionamos que $0 \notin [-1.4949, -0.5047]$, por lo que el parámetro **sma1** es significativamente distinto de cero.
+
+Ahora realizaré el **test de Ljun-Box**. Este test es un herramiento que nos ayuda a evaluar si los residuos de un modelo temporal son independientes, es decir, si son ruido blanco. Por lo que las hipotesis de este test son: 
+
+$H_{0}: \text{Los residuos son independiente (ruido blanco),}$
+
+
+$H_{1}: \text{Los residuos tienen autocorrelación significativa (no son ruido blanco)}$
+
+
+```{r}
+tsdiag(ms1, gof=36)
+```
+
+
+```{r}
+Box.test(residuals(ms1),lag = 36, type = "Ljung-Box", fitdf = 2)
+```
+
+En este test hemos obtenido un p-valor = 0.9253 > 0.05, con lo que no podemos rechazar la hipótesis nula, $H_{0}: \text{Los residuos son independiente (ruido blanco),}$, es decir, el modelo $SARIMA(0, 0, 0)(0, 1, 1)_{12}$ es podría ser adecuado.
+
+Estudiamos también la normalidad de los residuos de este modelo a través de la siguiente gráfica:
+
+```{r}
+qqnorm(residuals(ms1))
+qqline(residuals(ms1))
+```
+
+Los residuos del modelo parecen seguir una distribución aproximadamente normal, salvo por algunos puntos que se alejan de la diagonal, especialmente al principio y al final de ella, pero aún así no se puede rechazar la **normalidad**.
+
+Para confirmar la normalidad de los residuos del modelo, voy a realizar el **test de Shapiro.Wilk**:
+
+```{r}
+ shapiro.test(residuals(ms1))
+```
+
+Al obtener un p-valor = 0.2235 > 0.05, no podemos rechazar la hipótesis nula, es decir, no hay evidencias estadísticas para rechazar que los residuos siguen una distribución normal.
+
+También calcularé las correlaciones de los estimadores:
+
+```{r}
+AA = ms1$var.coef
+dd = dim(AA)
+B = diag(AA)
+CC = diag(dd[1])
+for(i in 1:dd[1]){
+  CC[i,i] = 1/sqrt(B[i])
+}
+
+CC%*%AA%*%CC
+```
+
+Al tener un único parámetro en el modelo, **sma1**, nos devuelve 1, ya que no puede estar correlacionado con otro.
+
+El modelo ajustado a los datos es: $$(1)(1 - B^{12})X_{t}=(1)(1 - 0.9998B^{12}) \epsilon _{t}$$
+
+Para concluir el estudio, realizo la predicción de la serie en el año siguiente:
+
+```{r}
+library(forecast)
+datos_predicción <- forecast(ms1, h=12)
+datos_predicción
+```
+
+Como curiosidad, ya que la base de datos utilizada llega hasta 2023, podemos comparar estas predicciones con los datos reales:
+
+```{r}
+datos_iniciales <-read.csv(file="datos_aire_Bc.csv", header=T, dec=".")
+
+datos_reales <- datos_iniciales[datos_iniciales$Any == "2003", ]
+datos_reales
+```
+
+
+
